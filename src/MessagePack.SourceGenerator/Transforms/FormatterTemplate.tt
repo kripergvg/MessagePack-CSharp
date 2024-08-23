@@ -91,15 +91,17 @@ using MsgPack = global::MessagePack;
   var member = Info.GetMember(memberIndex);
   if (member == null) { continue; } #>
 					case <#= member.IntKey #>:
+					<#= member.GetPreDeserializationString()  #>;
 <# if (canOverwrite) {
   if (member.IsWritable) { #>
 						____result.<#= member.Name #> = <#= member.GetDeserializeMethodString() #>;
 <# } else { #>
 						<#= member.GetDeserializeMethodString() #>;
 <# } #>
-<# } else {#>
+<# } else {#>						
 						__<#= member.Name #>__ = <#= member.GetDeserializeMethodString() #>;
 <# } #>
+						reader.CollectionMaxElementsCount = null ;
 						break;
 <# } #>
 					default:

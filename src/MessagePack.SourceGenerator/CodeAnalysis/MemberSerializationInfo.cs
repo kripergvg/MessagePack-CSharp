@@ -12,7 +12,8 @@ public record MemberSerializationInfo(
     string Name,
     string Type,
     string ShortTypeName,
-    FormatterDescriptor? CustomFormatter)
+    FormatterDescriptor? CustomFormatter,
+    int? maxTotalElementsCount = null)
 {
     private static readonly IReadOnlyCollection<string> PrimitiveTypes = new HashSet<string>(AnalyzerUtilities.PrimitiveTypes);
 
@@ -30,6 +31,16 @@ public record MemberSerializationInfo(
         {
             return $"MsgPack::FormatterResolverExtensions.GetFormatterWithVerify<{this.Type}>(formatterResolver).Serialize(ref writer, value.{this.Name}, options)";
         }
+    }
+
+    public string? GetPreDeserializationString()
+    {
+        if (maxTotalElementsCount != null)
+        {
+           return $"reader.CollectionMaxElementsCount = {maxTotalElementsCount}";
+        }
+
+        return "";
     }
 
     public string GetDeserializeMethodString()

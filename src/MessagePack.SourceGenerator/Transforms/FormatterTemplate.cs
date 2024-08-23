@@ -126,7 +126,9 @@ namespace MessagePack.SourceGenerator.Transforms
   if (member == null) { continue; } 
             this.Write("\t\t\t\t\tcase ");
             this.Write(this.ToStringHelper.ToStringWithCulture(member.IntKey));
-            this.Write(":\r\n");
+            this.Write(":\r\n\t\t\t\t\t");
+            this.Write(this.ToStringHelper.ToStringWithCulture(member.GetPreDeserializationString()));
+            this.Write(";\r\n");
  if (canOverwrite) {
   if (member.IsWritable) { 
             this.Write("\t\t\t\t\t\t____result.");
@@ -140,13 +142,13 @@ namespace MessagePack.SourceGenerator.Transforms
             this.Write(";\r\n");
  } 
  } else {
-            this.Write("\t\t\t\t\t\t__");
+            this.Write("\t\t\t\t\t\t\r\n\t\t\t\t\t\t__");
             this.Write(this.ToStringHelper.ToStringWithCulture(member.Name));
             this.Write("__ = ");
             this.Write(this.ToStringHelper.ToStringWithCulture(member.GetDeserializeMethodString()));
             this.Write(";\r\n");
  } 
-            this.Write("\t\t\t\t\t\tbreak;\r\n");
+            this.Write("\t\t\t\t\t\treader.CollectionMaxElementsCount = null ;\r\n\t\t\t\t\t\tbreak;\r\n");
  } 
             this.Write("\t\t\t\t\tdefault:\r\n\t\t\t\t\t\treader.Skip();\r\n\t\t\t\t\t\tbreak;\r\n\t\t\t\t}\r\n\t\t\t}\r\n\r\n");
  if (!canOverwrite) { 

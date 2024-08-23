@@ -1,6 +1,9 @@
 // Copyright (c) All contributors. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using MessagePack.Formatters;
 
 public class ExecutionTests
@@ -67,6 +70,48 @@ public class ExecutionTests
     }
 #endif
 
+    [Fact]
+    public void StringLessThanLimitDeserializes()
+    {
+        var value = new TestObject
+        {
+            Values = new List<List<string>>
+            {
+                Enumerable.Repeat("123456", 1).ToList()
+            }
+        };
+        byte[] serialized = MessagePackSerializer.Serialize(value, SerializerOptions);
+    }
+
+    [Fact]
+    public void StringBiggerThanLimitThrows()
+    {
+        var value = new TestObject
+        {
+            Values = new List<List<string>>
+            {
+                Enumerable.Repeat("123467", 1).ToList()
+            }
+        };
+        byte[] serialized = MessagePackSerializer.Serialize(value, SerializerOptions);
+        Assert.Throws<MessagePackSerializationException>(() => MessagePackSerializer.Deserialize<TestObject>(serialized, SerializerOptions));
+
+    }
+
+    [Fact]
+    public void NestedArrayOfStringsThrowsOnDeserializationWhenThereAreMoreCharsThanLimit()
+    {
+        var value = new TestObject
+        {
+            Values = new List<List<string>>
+            {
+                Enumerable.Repeat("1", 7).ToList()
+            }
+        };
+        byte[] serialized = MessagePackSerializer.Serialize(value, SerializerOptions);
+        Assert.Throws<MessagePackSerializationException>(() => MessagePackSerializer.Deserialize<TestObject>(serialized, SerializerOptions));
+    }
+
     private T AssertRoundtrip<T>(T value)
     {
         byte[] serialized = MessagePackSerializer.Serialize(value, SerializerOptions);
@@ -82,6 +127,17 @@ public class ExecutionTests
 
     internal record MyCustomType2
     {
+    }
+
+    [MessagePackObject]
+    internal record TestObject
+    {
+        [Key(0)]
+        [TotalElementsCount(6)]
+        internal List<List<string>> Values { get; set; }
+
+        [Key(1)]
+        public int MyProperty1 { get; set; }
     }
 
     /// <remarks>

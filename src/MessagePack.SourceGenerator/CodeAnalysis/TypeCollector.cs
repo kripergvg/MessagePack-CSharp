@@ -776,6 +776,10 @@ public class TypeCollector
                 includesPrivateMembers |= item.SetMethod is not null && !IsAllowedAccessibility(item.SetMethod.DeclaredAccessibility);
                 FormatterDescriptor? specialFormatter = GetSpecialFormatter(item);
                 TypedConstant? key = item.GetAttributes().FirstOrDefault(x => x.AttributeClass.ApproximatelyEqual(this.typeReferences.KeyAttribute))?.ConstructorArguments[0];
+
+                INamedTypeSymbol? limitAttributeSymbol = compilation.GetTypeByMetadataName("MessagePack.TotalElementsCountAttribute");
+                var limitAttribute = item.GetAttributes().FirstOrDefault(x => x.AttributeClass.ApproximatelyEqual(limitAttributeSymbol));
+                var limit = limitAttribute?.ConstructorArguments[0];               
                 if (key is null)
                 {
                     if (contractAttr is not null)
@@ -832,7 +836,11 @@ public class TypeCollector
                             this.reportDiagnostic?.Invoke(Diagnostic.Create(MsgPack00xMessagePackAnalyzer.KeysMustBeUnique, item.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax().GetLocation()));
                         }
 
-                        var member = new MemberSerializationInfo(true, isWritable, isReadable, intKey!.Value, item.Name, item.Name, item.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat), item.Type.ToDisplayString(BinaryWriteFormat), specialFormatter);
+                        int? limitParsed = null;
+                        if (limit != null)
+                            limitParsed = int.Parse(limit.Value.ToCSharpString());
+
+                        var member = new MemberSerializationInfo(true, isWritable, isReadable, intKey!.Value, item.Name, item.Name, item.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat), item.Type.ToDisplayString(BinaryWriteFormat), specialFormatter, limitParsed);
                         intMembers.Add(member.IntKey, (member, item.Type));
                     }
                     else if (stringKey is not null)

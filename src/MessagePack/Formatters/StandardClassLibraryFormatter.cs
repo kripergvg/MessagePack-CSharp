@@ -82,8 +82,18 @@ namespace MessagePack.Formatters
         }
 
         public string? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
-        {
-            return reader.ReadString();
+        {            
+            var value = reader.ReadString();
+
+            // TODO this should be checked before creating a string
+            if (reader.CollectionMaxElementsCount != null && value != null && reader.CurrentElementsCount + value.Length > reader.CollectionMaxElementsCount)
+            {
+                throw new Exception("Too many elements");
+            }
+
+            reader.CurrentElementsCount += value?.Length ?? 0;
+
+            return value;
         }
     }
 

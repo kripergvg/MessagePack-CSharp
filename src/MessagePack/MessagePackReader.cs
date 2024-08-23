@@ -64,6 +64,10 @@ namespace MessagePack
         /// </summary>
         public int Depth { get; set; }
 
+        public int? CollectionMaxElementsCount { get; set; }
+
+        public int CurrentElementsCount { get; set; }
+
         /// <summary>
         /// Gets the <see cref="ReadOnlySequence{T}"/> originally supplied to the constructor.
         /// </summary>

@@ -285,6 +285,18 @@ namespace MessagePack.Formatters
                 options.Security.DepthStep(ref reader);
                 try
                 {
+                    int elementsCount = reader.CurrentElementsCount;
+                    int? maxElementsCount = reader.CollectionMaxElementsCount;
+                    if ((!typeof(T).IsGenericType && typeof(T) != typeof(string)) || typeof(T).GetGenericTypeDefinition() != typeof(List<>))
+                    {
+                        reader.CurrentElementsCount = 0;
+                        reader.CollectionMaxElementsCount = null;
+
+                        if (maxElementsCount != null && elementsCount + len > maxElementsCount)
+                        {
+                            throw new Exception("Too many elements");
+                        }
+                    }
 #if NET8_0_OR_GREATER
                     CollectionsMarshal.SetCount(list, len);
                     var span = CollectionsMarshal.AsSpan(list);
@@ -300,6 +312,9 @@ namespace MessagePack.Formatters
                         list.Add(formatter.Deserialize(ref reader, options));
                     }
 #endif
+
+                    reader.CurrentElementsCount = elementsCount + len;
+                    reader.CollectionMaxElementsCount = maxElementsCount;
                 }
                 finally
                 {
